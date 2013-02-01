@@ -12,7 +12,7 @@ import iso8601
 def sane(self, text, quotes=True):
     if(quotes):
         return text.encode('ascii','ignore').replace('"','')
-    else
+    else:
         return text.encode('ascii','ignore')
 
 def parse_date(self, datestring):
@@ -48,7 +48,7 @@ class FbGroupArchiver:
                 message = post.get('message')
                 created_on = parse_date(post.get('created_time'))
                 updated_on = parse_date(post.get('updated_time'))
-		        author_name = sane(post.get('from').get('name'))
+                author_name = sane(post.get('from').get('name'))
                 author_id = post.get('from').get('id')
                 if(message != None):
                     message = sane(message)
