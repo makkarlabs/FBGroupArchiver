@@ -61,7 +61,9 @@ class UserArchiver:
         firstname = sane(user.get('first_name'))
         middlename = sane(user.get('middle_name'))
         lastname = sane(user.get('last_name'))
-        gender = user.get('sex')[0]
+        gender = ""
+        if user.get('sex') != "" and user.get('sex') is not None:
+            gender = user.get('sex')[0]
         location = ""
         current_location = user.get('current_location')
         if current_location is not None:
@@ -69,8 +71,9 @@ class UserArchiver:
         link = user.get('profile_url')
         if link is None:
             link = ""
+        active = 0 
         username = user.get('username')
-        cursor.execute("""SELECT InsertUser(%s, %s, %s, %s, %s, %s, %s, %s) """, (user_id, firstname, middlename, lastname, gender, location, link, username))
+        cursor.execute("""SELECT InsertUser(%s, %s, %s, %s, %s, %s, %s, %s, %s) """, (user_id, active, firstname, middlename, lastname, gender, location, link, username))
         code = cursor.fetchone()
         print code[0]
 
