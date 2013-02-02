@@ -118,12 +118,10 @@ class FbGroupArchiver:
         com_id = comment.get('id')
         from_id = comment.get('from').get('id')
         text = comment.get('message')
-        created_time = comment.get('created_time')
+        created_time = parse_date(comment.get('created_time'))
         likes_count = comment.get('likes')
         post_id = com_id.split('_')[0] + '_' + com_id.split('_')[1]
-        cursor.execute("""SELECT InsertComment(%s, %s, %s, %s, %s, %s, %s) """, (com_id, post_id, from_id, text, len(text), likes_count, created_time ))
-
-        
+        cursor.execute("""SELECT InsertComment(%s, %s, %s, %s, %s, %s, %s) """, (com_id, post_id, from_id, text, len(text), likes_count, created_time))
 
     def post_to_kippt(self, values):
         print values
