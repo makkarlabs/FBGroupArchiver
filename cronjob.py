@@ -1,6 +1,6 @@
 import sys
 
-from fb_group_sync import FbGroupArchiver
+from fb_logger import FbGroupArchiver
 
 try:
     FbGroupArchiver(sys.argv[1]).process_data()

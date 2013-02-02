@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS comments (
   comment_text text NOT NULL,
   comment_length int NOT NULL,
   likes_count int DEFAULT 0,
-  created_at timestamp NOT NULL,
+  created_time timestamp NOT NULL,
   id int AUTO_INCREMENT NOT NULL,
   PRIMARY KEY (id)
 );

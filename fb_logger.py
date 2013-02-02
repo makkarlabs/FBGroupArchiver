@@ -152,7 +152,6 @@ class FbGroupArchiver:
         user_id = like.get('id')
         cursor.execute("""SELECT InsertLike(%s, %s, %s) """,(post_id, user_id, self.prev_update))        
             
-
     def post_to_kippt(self, values):
         #print values
         config = self.config
