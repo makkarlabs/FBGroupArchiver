@@ -9,13 +9,13 @@ import traceback
 from datetime import datetime
 import iso8601
 
-def sane(self, text, quotes=True):
+def sane(text, quotes=True):
     if(quotes):
         return text.encode('ascii','ignore').replace('"','')
     else:
         return text.encode('ascii','ignore')
 
-def parse_date(self, datestring):
+def parse_date(datestring):
     return iso8601.parse_date(datestring).strftime('%Y-%m-%d %H:%M:%S')
 
 
@@ -46,6 +46,7 @@ class FbGroupArchiver:
                 print post.get('id')
                 post_id = post.get('id').rsplit('_',1)[1]
                 message = post.get('message')
+                print post.get('created_time')
                 created_on = parse_date(post.get('created_time'))
                 updated_on = parse_date(post.get('updated_time'))
                 author_name = sane(post.get('from').get('name'))
@@ -55,14 +56,17 @@ class FbGroupArchiver:
                     comments_count = None
                     likes_count = None
                     title = ''
-                    if(post.get('comments') != None):
-                        comments_count = post.get('comments').get('count')
-                    #
+                    comments_count = post.get('comments').get('count')
+                    if(post.get('comments').get('data') != None):
+                        for comment in post.get('comments').get('data'):
+                            self.update_comment(comment)
+                                            #
                     if(post.get('likes') != None):
                         likes_count = post.get('likes').get('count')
                     # Do the DB part here
                     cursor.execute("""SELECT InsertPost(%s, %s, %s, %s, %s, %s, %s, %s)""", (author_name, author_id, message, likes_count, comments_count, created_on, updated_on, post_id))
                     code = cursor.fetchone()
+                    print code
                     # code[0] indicates the number of affected rows, 
                     #if its 1 -> successful insert, if not the post already exists in the Db
                     if(code[0] == 1 and post.get('link') !=  None):
@@ -77,8 +81,10 @@ class FbGroupArchiver:
                 
                         # Build the JSON
                         values = '{"url": "'+link+'" , "list":"'+config.get('kippt','listuri')+'", "title":"'+title+'", "notes":"'+description+ '"}'
-                        r = self.post_to_kippt(values)
-                        self.post_link(r, post_id)
+                        # uncomment if you want to post to kippt
+                        #r = self.post_to_kippt(values)
+                            
+                        #self.post_link(r, post_id)
 
                     elif(code[0] == 1):
                        
@@ -94,8 +100,9 @@ class FbGroupArchiver:
                            for url in urls:
                                # Build the JSON
                                values = '{"url": "'+url+'" , "list": "'+config.get('kippt','listuri')+'", "notes":"'+description+'"}' 
-                               r = self.post_to_kippt(values)
-                               self.post_link(r, post_id)
+                               # uncomment if you want to post to kippt
+                               # r = self.post_to_kippt(values)
+                               # self.post_link(r, post_id)
                        except Exception, err:
                            logging.error(str(datetime.now())+" "+str(err))
                            traceback.print_exc(file = open(config.get('logging','errorlog'),'a'))
@@ -105,6 +112,18 @@ class FbGroupArchiver:
                 traceback.print_exc(file = open(config.get('logging','errorlog'),'a'))
         print "Archiving Complete!"
         logging.info(str(datetime.now())+' Archiving Complete for page: '+group_url)
+
+    def update_comment(self, comment):
+        cursor = self.cursor
+        com_id = comment.get('id')
+        from_id = comment.get('from').get('id')
+        text = comment.get('message')
+        created_time = comment.get('created_time')
+        likes_count = comment.get('likes')
+        post_id = com_id.split('_')[0] + '_' + com_id.split('_')[1]
+        cursor.execute("""SELECT InsertComment(%s, %s, %s, %s, %s, %s, %s) """, (com_id, post_id, from_id, text, len(text), likes_count, created_time ))
+
+        
 
     def post_to_kippt(self, values):
         print values
