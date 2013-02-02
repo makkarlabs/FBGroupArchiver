@@ -79,7 +79,6 @@ CREATE TABLE IF NOT EXISTS comments (
   comment_length int NOT NULL,
   likes_count int DEFAULT 0,
   created_at timestamp NOT NULL,
-  updated_at timestamp NOT NULL,
   id int AUTO_INCREMENT NOT NULL,
   PRIMARY KEY (id)
 );
@@ -87,13 +86,13 @@ CREATE TABLE IF NOT EXISTS comments (
 --Function InsertComment
 delimiter //
 CREATE FUNCTION InsertComment(comment_id varchar(100), post_id varchar(100), user_id varchar(100), 
-            comment_text text, comment_length int, likes_count int, created_at timestamp, updated_at timestamp) 
+            comment_text text, comment_length int, likes_count int, created_at timestamp) 
             RETURNS INT 
     BEGIN 
         DECLARE affected_rows INT; 
-        INSERT INTO comments (comment_id, post_id, user_id, comment_text, comment_length, likes_count, created_time, updated_time) 
-        VALUES (comment_id, post_id, user_id, comment_text, comment_length, likes_count, created_time, updated_time) 
-        ON DUPLICATE KEY UPDATE likes_count = likes_count, comment_text = comment_text, comment_length = comment_length, updated_time = updated_time; 
+        INSERT INTO comments (comment_id, post_id, user_id, comment_text, comment_length, likes_count, created_time ) 
+        VALUES (comment_id, post_id, user_id, comment_text, comment_length, likes_count, created_time) 
+        ON DUPLICATE KEY UPDATE likes_count = likes_count, comment_text = comment_text, comment_length = comment_length; 
         SELECT ROW_COUNT() INTO affected_rows; 
         RETURN affected_rows; 
     END//
