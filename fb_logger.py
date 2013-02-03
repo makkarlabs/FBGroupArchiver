@@ -98,6 +98,7 @@ class FbGroupArchiver:
         config = self.config
         controlchar_regex = re.compile(r'[\n\r\t]')
         author_name = sane(post.get('from').get('name'))
+        post_id = post.get('id')
         message = post.get('message')
         title = ' '
         if(code[0] == 1 and post.get('link') !=  None):
