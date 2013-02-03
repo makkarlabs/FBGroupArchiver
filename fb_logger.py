@@ -79,13 +79,13 @@ class FbGroupArchiver:
                 comments_count = post.get('comments').get('count')
                 if post.get('comments').get('data') != None:
                     for comment in post.get('comments').get('data'):
-                        self.update_comment(comment)
+                        self.update_comment(author_id, comment)
             
             if post.get('likes') != None:
                 likes_count = post.get('likes').get('count')
                 if post.get('likes').get('data') != None:
                     for like in post.get('likes').get('data'):
-                        self.update_like(post_id, like)
+                        self.update_like(author_id, post_id, like)
             
             cursor.execute("""SELECT InsertPost(%s, %s, %s, %s, %s, %s, %s, %s)""", (author_name, author_id, message, likes_count, comments_count, created_on, updated_on, post_id))
             code = cursor.fetchone()
@@ -139,7 +139,7 @@ class FbGroupArchiver:
 
 
 
-    def update_comment(self, comment):
+    def update_comment(self, author_id, comment):
         cursor = self.cursor
         com_id = comment.get('id')
         from_id = comment.get('from').get('id')
@@ -147,12 +147,12 @@ class FbGroupArchiver:
         created_time = parse_date(comment.get('created_time'))
         likes_count = comment.get('likes')
         post_id = com_id.split('_')[0] + '_' + com_id.split('_')[1]
-        cursor.execute("""SELECT InsertComment(%s, %s, %s, %s, %s, %s, %s) """, (com_id, post_id, from_id, text, len(re.findall(r'\w+', text)), likes_count, created_time ))
+        cursor.execute("""SELECT InsertComment(%s, %s, %s, %s, %s, %s, %s, %s) """, (com_id, post_id, from_id, text, len(re.findall(r'\w+', text)), likes_count, created_time, author_id ))
 
-    def update_like(self, post_id, like):
+    def update_like(self, author_id, post_id, like):
         cursor = self.cursor
         user_id = like.get('id')
-        cursor.execute("""SELECT InsertLike(%s, %s, %s) """,(post_id, user_id, self.prev_update))        
+        cursor.execute("""SELECT InsertLike(%s, %s, %s, %s) """,(post_id, user_id, self.prev_update, author_id))
             
     def post_to_kippt(self, values):
         #print values
