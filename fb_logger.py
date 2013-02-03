@@ -113,8 +113,8 @@ class FbGroupArchiver:
             # Build the JSON
             values = '{"url": "'+link+'" , "list":"'+config.get('kippt','listuri')+'", "title":"'+title+'", "notes":"'+description+ '"}'
             # uncomment if you want to post links to kippt
-            #r = self.post_to_kippt(values)
-            #self.post_link(r, post_id)
+            r = self.post_to_kippt(values)
+            self.post_link(r, post_id)
 
         elif(code[0] == 1):
            
@@ -131,8 +131,8 @@ class FbGroupArchiver:
                    # Build the JSON
                    values = '{"url": "'+url+'" , "list": "'+config.get('kippt','listuri')+'", "notes":"'+description+'"}' 
                    # uncomment if you want to post to kippt
-                   # r = self.post_to_kippt(values)
-                   # self.post_link(r, post_id)
+                   r = self.post_to_kippt(values)
+                   self.post_link(r, post_id)
            except Exception, err:
                logging.error(str(datetime.now())+" "+str(err))
                traceback.print_exc(file = open(config.get('logging','errorlog'),'a'))
@@ -143,7 +143,7 @@ class FbGroupArchiver:
         cursor = self.cursor
         com_id = comment.get('id')
         from_id = comment.get('from').get('id')
-        text = comment.get('message')
+        text = sane(comment.get('message'))
         created_time = parse_date(comment.get('created_time'))
         likes_count = comment.get('likes')
         post_id = com_id.split('_')[0] + '_' + com_id.split('_')[1]
