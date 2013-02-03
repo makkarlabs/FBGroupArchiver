@@ -39,7 +39,6 @@ class FbGroupArchiver:
         logging.basicConfig(filename=config.get('logging','infolog'), level=logging.INFO)
 
     def process_data(self, group_url=None):
-        controlchar_regex = re.compile(r'[\n\r\t]')
         cursor = self.cursor
         config = self.config
         if(group_url == None):
@@ -97,6 +96,7 @@ class FbGroupArchiver:
         # code[0] indicates the number of affected rows, 
         #if its 1 -> successful insert, if not the post already exists in the Db
         config = self.config
+        controlchar_regex = re.compile(r'[\n\r\t]')
         title = ' '
         if(code[0] == 1 and post.get('link') !=  None):
             link = sane(post.get('link'), False)
