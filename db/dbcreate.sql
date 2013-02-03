@@ -58,14 +58,35 @@ CREATE TABLE IF NOT EXISTS likes (
   PRIMARY KEY (id)
 );
 
+--Function UpdateLikePoints
+delimiter //
+CREATE FUNCTION UpdateLikePoints(post_id varchar(100), user_id varchar(100), affected_rows int) RETURNS INT
+    BEGIN
+        DECLARE owner_id int;
+        DECLARE owner_ins int;
+        DECLARE user_ins int;
+        IF affected_rows = 1 
+        THEN
+            SELECT author_id INTO owner_id from posts where post_id = post_id;
+            SELECT InsertUserPoints(owner_id) INTO owner_ins;
+            SELECT InsertUserPoints(user_id) INTO user_ins;
+            UPDATE user_points set like_o_count = like_o_count + 1 where user_id = owner_id;
+            UPDATE user_points set like_u_count = like_u_count + 1 where user_id = user_id;
+        END IF;
+        return 0;
+    END//
+delimiter ;
+
 --Function InsertLike
 delimiter //
 CREATE FUNCTION InsertLike(post_id varchar(100), user_id varchar(100), created_at timestamp) 
         RETURNS INT 
     BEGIN 
         DECLARE affected_rows INT; 
+        DECLARE update_like INT;
         INSERT IGNORE INTO likes (post_id, user_id, post_user, created_at) VALUES (post_id, user_id, CONCAT(post_id,'_',user_id), created_at); 
-        SELECT ROW_COUNT() INTO affected_rows; 
+        SELECT ROW_COUNT() INTO affected_rows;
+        SELECT UpdateLikePoints(post_id, user_id, affected_rows) into update_like;
         RETURN affected_rows; 
     END//
 delimiter ;
@@ -83,17 +104,68 @@ CREATE TABLE IF NOT EXISTS comments (
   PRIMARY KEY (id)
 );
 
+--Function UpdateCommentPoints
+delimiter //
+CREATE FUNCTION UpdateCommentPoints(post_id varchar(100), user_id varchar(100), affected_rows int, comment_length int, comment_words int)
+    RETURNS INT
+    BEGIN
+        DECLARE owner_id INT;
+        DECLARE owner_ins int;
+        DECLARE user_ins int;
+        
+        SELECT author_id from posts where post_id = post_id into owner_id;
+        SELECT InsertUserPoints(owner_id) into owner_ins;
+        SELECT InsertUserPoints(user_id) into user_ins;
+
+        IF affected_rows = 1 THEN
+            UPDATE user_points set comment_o_count = comment_o_count + 1 where user_id = owner_id;
+            UPDATE user_points set comment_u_count = comment_u_count + 1 where user_id = user_id;
+            IF (comment_length > 50 && comment_length < 100) THEN
+                UPDATE user_points set xtra_points = xtra_points + 5 where user_id = owner_id;
+                UPDATE user_points set xtra_points = xtra_points + 25 where user_id = user_id;
+            ELSEIF comment_length >= 100 THEN
+                UPDATE user_points set xtra_points = xtra_points + 10 where user_id = owner_id;
+                UPDATE user_points set xtra_points = xtra_points + 50 where user_id = user_id;
+            END IF;
+        
+        ELSEIF affected_rows = 2 THEN
+            IF comment_words != comment_length THEN
+                IF (comment_length > 50 && comment_length < 100) THEN
+                    UPDATE user_points set xtra_points = xtra_points - 5 where user_id = owner_id;
+                    UPDATE user_points set xtra_points = xtra_points - 25 where user_id = user_id;
+                ELSEIF comment_length >= 100 THEN
+                    UPDATE user_points set xtra_points = xtra_points - 10 where user_id = owner_id;
+                    UPDATE user_points set xtra_points = xtra_points - 50 where user_id = user_id;
+                END IF;
+                IF (comment_words > 50 && comment_words < 100) THEN
+                    UPDATE user_points set xtra_points = xtra_points + 5 where user_id = owner_id;
+                    UPDATE user_points set xtra_points = xtra_points + 25 where user_id = user_id;
+                ELSEIF comment_words >= 100 THEN
+                    UPDATE user_points set xtra_points = xtra_points + 10 where user_id = owner_id;
+                    UPDATE user_points set xtra_points = xtra_points + 50 where user_id = user_id;
+                END IF;
+            END IF;
+        END IF;
+        return 0;
+    END//
+delimiter ;
+
 --Function InsertComment
 delimiter //
 CREATE FUNCTION InsertComment(comment_id varchar(100), post_id varchar(100), user_id varchar(100), 
-            comment_text text, comment_length int, likes_count int, created_at timestamp) 
+            comment_text text, comment_length int, likes_count int, created_time timestamp) 
             RETURNS INT 
     BEGIN 
-        DECLARE affected_rows INT; 
+        DECLARE affected_rows INT;
+        DECLARE comment_words INT;
+        DECLARE update_comment INT;
+        SELECT comment_length from comments where comment_id = comment_id INTO comment_words;
+
         INSERT INTO comments (comment_id, post_id, user_id, comment_text, comment_length, likes_count, created_time ) 
         VALUES (comment_id, post_id, user_id, comment_text, comment_length, likes_count, created_time) 
         ON DUPLICATE KEY UPDATE likes_count = likes_count, comment_text = comment_text, comment_length = comment_length; 
-        SELECT ROW_COUNT() INTO affected_rows; 
+        SELECT ROW_COUNT() INTO affected_rows;
+        SELECT UpdateCommentPoints(post_id, user_id, affected_rows, comment_length, comment_words) INTO update_comment; 
         RETURN affected_rows; 
     END//
 delimiter ;
@@ -144,19 +216,28 @@ CREATE TABLE IF NOT EXISTS user_points (
 
 --Function InsertUserPoints
 delimiter //
-CREATE FUNCTION InsertUserPoints(user_id varchar(100), comments_o_count int, comments_u_count int, likes_o_count int, likes_u_count int, post_points int, xtra_points int, updated_at timestamp) 
+CREATE FUNCTION InsertUserPoints(user_id varchar(100)) 
             RETURNS INT 
     BEGIN 
         DECLARE affected_rows INT; 
-        INSERT INTO user_points (user_id, comments_o_count, comments_u_count, likes_o_count, likes_u_count, 
-            post_points, xtra_points, total_points, updated_at) 
-        VALUES (user_id, comments_o_count, comments_u_count, likes_o_count, likes_u_count, 
-            post_points, xtra_points, post_points+xtra_points, updated_at) 
-        ON DUPLICATE KEY UPDATE comments_o_count = comments_o_count, comments_u_count = comments_u_count, 
-            likes_o_count = likes_o_count, likes_u_count = likes_u_count, post_points = post_points, 
-            xtra_points = xtra_points, total_points = post_points + xtra_points, updated_at = updated_at; 
+        INSERT IGNORE INTO user_points (user_id, updated_at) 
+        VALUES (user_id, now()); 
         SELECT ROW_COUNT() INTO affected_rows; 
         RETURN affected_rows; 
     END//
+delimiter ;
+
+--Update trigger for User Points
+
+delimiter //
+CREATE TRIGGER user_point_update after UPDATE ON user_points
+    FOR EACH ROW 
+    BEGIN
+        UPDATE user_points SET post_points = (NEW.comments_o_count * 5) + (NEW.comments_u_count * 5) 
+            + (NEW.likes_o_count * 2) + (NEW.likes_u_count * 1) 
+            WHERE user_id = NEW.user_id;
+        UPDATE user_points SET total_points = NEW.post_points + NEW.xtra_points WHERE user_id = NEW.user_id;
+        UPDATE user_points SET updated_at = now() WHERE user_id = NEW.user_id;
+    END //
 delimiter ;
 

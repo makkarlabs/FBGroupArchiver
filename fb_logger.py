@@ -97,6 +97,8 @@ class FbGroupArchiver:
         #if its 1 -> successful insert, if not the post already exists in the Db
         config = self.config
         controlchar_regex = re.compile(r'[\n\r\t]')
+        author_name = sane(post.get('from').get('name'))
+        message = post.get('message')
         title = ' '
         if(code[0] == 1 and post.get('link') !=  None):
             link = sane(post.get('link'), False)

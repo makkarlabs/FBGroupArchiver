@@ -38,7 +38,6 @@ class UserArchiver:
         controlchar_regex = re.compile(r'[\n\r\t]')
         cursor = self.cursor
         config = self.config
-        #limit = 50
         if(group_url == None):
             group_url = config.get('group','url_user')#+str(limit)
         data = urllib2.urlopen(group_url).read()
@@ -57,7 +56,7 @@ class UserArchiver:
 
     def update_user(self, user):
         cursor = self.cursor
-        user_id = user.get('id')
+        user_id = user.get('uid')
         firstname = sane(user.get('first_name'))
         middlename = sane(user.get('middle_name'))
         lastname = sane(user.get('last_name'))
@@ -74,8 +73,6 @@ class UserArchiver:
         active = 0 
         username = user.get('username')
         cursor.execute("""SELECT InsertUser(%s, %s, %s, %s, %s, %s, %s, %s, %s) """, (user_id, active, firstname, middlename, lastname, gender, location, link, username))
-        code = cursor.fetchone()
-        print code[0]
 
 try:
     UserArchiver(sys.argv[1]).process_data()    
