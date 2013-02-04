@@ -40,6 +40,7 @@ This app helps us archive all posts from a facebook group along with its metadat
 ### config/default_properties.cfg
 
 * facebook group links - graph api url and members list fql url
+* location of info log and error log files
 * mysql database configuration
 * kippt configuration
 * cronjob interval (in minutes)
@@ -48,16 +49,16 @@ This app helps us archive all posts from a facebook group along with its metadat
 
 ### cronjob
 
->> python cronjob.py config/<properties_filename>.cfg
+    python cronjob.py config/<properties_filename>.cfg
 
 ### usercron
 
->> python usercron.py config/<properties_filename>.cfg
+    python usercron.py config/<properties_filename>.cfg
 
-### insert_users.py
+### insert_users
 
->> python insert_users.py config/<properties_filename>.cfg
+    python insert_users.py config/<properties_filename>.cfg
 
-### batch script
+### batchscript
 
->> python batchscript.py /path/to/config/<properties_filename>.cfg [facebook group graph api url(optional)]
+    python batchscript.py /path/to/config/<properties_filename>.cfg [facebook group graph api url(optional)]
