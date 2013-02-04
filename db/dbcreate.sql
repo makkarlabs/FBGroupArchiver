@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS links (
 
 --Function InsertLink
 delimiter //
-CREATE FUNCTION InsertLink(url varchar(255), title text, post_id varchar(100), description text) 
+CREATE FUNCTION InsertLink(url varchar(255), title text, description text, post_id varchar(100)) 
         RETURNS INT 
     BEGIN 
         DECLARE affected_rows INT; 

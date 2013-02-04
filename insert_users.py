@@ -1,3 +1,5 @@
+#This script is run for the first time to update User db with group members
+#The Facebook API only returns ~5000 members, so usercron.py ensures daily updates of the User table
 import urllib2
 import urllib
 import re
@@ -58,7 +60,9 @@ class UserArchiver:
         cursor = self.cursor
         user_id = user.get('uid')
         firstname = sane(user.get('first_name'))
-        middlename = sane(user.get('middle_name'))
+        middlename = ""
+        if user.get('middle_name') is not None:
+            middlename = sane(user.get('middle_name'))
         lastname = sane(user.get('last_name'))
         gender = ""
         if user.get('sex') != "" and user.get('sex') is not None:
@@ -77,4 +81,8 @@ class UserArchiver:
 try:
     UserArchiver(sys.argv[1]).process_data()    
 except Exception, err:
+    print sys.argv[0]
+    print 'Pass config file as command line argument'
+    print sys.argv[1]
     print err
+                

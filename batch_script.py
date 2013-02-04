@@ -22,8 +22,12 @@ def index():
         FbGroupArchiver(sys.argv[1]).process_data(group_url)
         data = urllib2.urlopen(group_url).read()
         jsondata = json.loads(data)
-        group_url = jsondata.get('paging').get('next')
-        print group_url
+        if(jsondata.get('paging') is not None):
+            group_url = jsondata.get('paging').get('next')
+            print group_url
+        else: 
+            print "Reached last page. Done."
+            break
 if __name__ == "__main__":
     index()
 
