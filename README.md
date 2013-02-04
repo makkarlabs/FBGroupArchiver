@@ -61,4 +61,4 @@ This app helps us archive all posts from a facebook group along with its metadat
 
 ### batchscript
 
-    python batchscript.py /path/to/config/<properties_filename>.cfg [facebook group graph api url(optional)]
+    python batchscript.py config/<properties_filename>.cfg [facebook group graph api url(optional)]
