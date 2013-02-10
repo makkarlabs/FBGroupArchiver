@@ -72,7 +72,7 @@ class UserArchiver:
                 user_url = "http://graph.facebook.com/"+row[0]
                 data = urllib2.urlopen(user_url).read()
                 user_json = json.loads(data)
-                self.update_user(user_json)
+                self.update_user(user_json, row[0])
             except Exception, err:
                 print 'Some error'
                 logging.error(str(datetime.now())+" "+str(err))
@@ -84,9 +84,12 @@ class UserArchiver:
         print "Archiving Complete!"
 
 
-    def update_user(self, user):
+    def update_user(self, user, userid=None):
         cursor = self.cursor
-        user_id = user.get('uid')
+        if userid is not None:
+            user_id = userid
+        else:
+            user_id = user.get('uid')
         firstname = sane(user.get('first_name'))
         middlename = ""
         if user.get('middle_name') is not None:
