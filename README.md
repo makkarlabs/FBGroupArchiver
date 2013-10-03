@@ -1,4 +1,4 @@
-# Bangalore Startups Facebook Group Logger
+# Facebook Group Archiver
  
 
 This app helps us archive all posts from a facebook group along with its metadata and generate analytics to improve user involvement.
